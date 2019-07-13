@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Plugin Architecture</string>
+    <string name="title_ui">UI</string>
+    <string name="title_data">Data</string>
+    <string name="title_listing">Module Title</string>
+    <string name="title_detail">Detail</string>
+    <string name="title_navigation">Navigation</string>
+    <string name="title_shell">Shell</string>
+</resources>

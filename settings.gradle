@@ -1,0 +1,1 @@
+include ':app', ':ui', ':domain', ':data', ':listing', ':detail', ':navigation', ':injection', ':core'
