@@ -1,53 +1,91 @@
 package com.example.pluginarchitecture.ui
 
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
+import com.example.pluginarchitecture.core.Feature
 import com.example.pluginarchitecture.navigation.Navigator
-import android.content.pm.PackageManager
-import kotlin.random.Random
 
 
 /**
  * Created by kietnlt on 12 Jul 2019.
  */
-class NavigatorImpl(fragmentActivity: AppCompatActivity) : Navigator {
+class NavigatorImpl(
+    private val fragmentActivity: AppCompatActivity
+) : Navigator {
+    fun onCreate(savedInstanceState: Bundle?) {
+        if (savedInstanceState == null) {
+            navHost = NavHostFragment()
+            fragmentActivity.supportFragmentManager.beginTransaction()
+                .add(R.id.fragment_container, navHost)
+                .commit()
+        }
+    }
+
     // Find the resourceId of the graph we want to attach
-    val navController: NavController by lazy {
-        (fragmentActivity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment).navController
+    private lateinit var navController: NavController
+    private lateinit var navHost: NavHostFragment
 
+    fun onStart() {
+        navController = navHost.navController
+
+        if (isOpenFromLink()) {
+            openLink()
+        } else {
+            startWith(Feature.Listing)
+        }
     }
 
-    val listingId: Int by lazy {
-        (Class.forName("com.example.pluginarchitecture.listing.C").getField("nav_graph").getInt(null) as Int)
-            .let {
-                val des = navController.navInflater.inflate(it)
-
-                navController.graph.addAll(des)
-            }
-        (Class.forName("com.example.pluginarchitecture.listing.C").getField("des_id").getInt(null) as Int)
-
+    private fun isOpenFromLink(): Boolean {
+        return fragmentActivity.intent.data?.toString()?.let {
+            it.startsWith("example://") || it.startsWith("https://example.com")
+        } == true
     }
 
-    val detailId: Int by lazy {
-        (Class.forName("com.example.pluginarchitecture.detail.C").getField("nav_graph").getInt(null) as Int)
-            .let {
-                val des = navController.navInflater.inflate(it)
+    private fun openLink() {
+        val uri = requireNotNull(fragmentActivity.intent.data)
+        try {
+            val detailId = uri.pathSegments.last().toString()
+            startWithDetail(detailId)
+        } catch (ignore: Throwable) {
+            startWith(Feature.Listing)
+        }
+    }
 
-                navController.graph.addAll(des)
-            }
-        (Class.forName("com.example.pluginarchitecture.detail.C").getField("des_id").getInt(null) as Int)
+    fun navigateUp(): Boolean {
+        return navController.navigateUp()
+    }
+
+    private val listingId: Int by lazy { obtainAndSetupDestinationIdOf(Feature.Listing) }
+
+    private val detailId: Int by lazy { obtainAndSetupDestinationIdOf(Feature.Detail) }
+
+    private fun obtainAndSetupDestinationIdOf(feature: Feature): Int {
+        val graph = navController.navInflater.inflate(feature.navGraphResId)
+        navController.graph.addAll(graph)
+        return feature.destinationId
+    }
+
+    // for no arg fragment
+    private fun startWith(feature: Feature) {
+        navController.graph = navController.navInflater.inflate(feature.navGraphResId).apply {
+            startDestination = feature.destinationId
+        }
+    }
+
+    private fun startWithDetail(id: String) {
+        val graph = navController.navInflater.inflate(Feature.Detail.navGraphResId).apply {
+            startDestination = Feature.Detail.destinationId
+        }
+        navController.setGraph(graph, Bundle().apply { putString("taskId", id) })
     }
 
     override fun toListing() {
-
-        navController.navigate(listingId)
+        listingId.let { navController.navigate(it) }
     }
 
     override fun toDetail(id: String) {
-        navController.navigate(detailId, Bundle().apply { putString("taskId", id) })
+        detailId.let { navController.navigate(it, Bundle().apply { putString("taskId", id) }) }
     }
 }

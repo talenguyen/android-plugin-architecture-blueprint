@@ -11,4 +11,8 @@
     <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content" android:id="@+id/arg_text_view"/>
+    <Button
+            android:text="go to next listing ->"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:id="@+id/button"/>
 </LinearLayout>

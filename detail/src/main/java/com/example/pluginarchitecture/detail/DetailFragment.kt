@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import com.example.pluginarchitecture.navigation.NavigatorProvider
 
 
 /**
@@ -16,6 +18,9 @@ class DetailFragment : Fragment() {
         val args = DetailFragmentArgs.fromBundle(arguments!!)
         return inflater.inflate(R.layout.detail_fragment, container, false).apply {
             findViewById<TextView>(R.id.arg_text_view).text = "args is $args"
+            findViewById<Button>(R.id.button).setOnClickListener {
+                (requireActivity() as NavigatorProvider).navigator.toListing()
+            }
         }
     }
 }
